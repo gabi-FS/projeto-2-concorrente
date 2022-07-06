@@ -14,6 +14,8 @@ planets = {}
 bases = {}
 mines = {}
 simulation_time = None
+dados_planeta = {} # dicionário de mutexes (alguma ideia melhor?)
+
 
 def acquire_print():
     global mutex_print
@@ -26,6 +28,9 @@ def release_print():
 def set_planets_ref(all_planets):
     global planets
     planets = all_planets
+    global dados_planeta # cria um dicionário de mutexes pra pegar os dados dos planetas
+    for planet in all_planets.keys(): # (já que não pode mudar o construtor)
+        dados_planeta[planet] = Lock()
 
 def get_planets_ref():
     global planets
@@ -62,3 +67,14 @@ def set_simulation_time(time):
 def get_simulation_time():
     global simulation_time
     return simulation_time
+
+
+def acquire_satelite(planeta):
+    '''pega o lock para obter informações do planeta correspondente'''
+    global dados_planeta
+    dados_planeta[planeta].acquire()
+
+def release_satelite(planeta):
+    '''libera o lock para obter informações do planeta correspondente'''
+    global dados_planeta
+    dados_planeta[planeta].release()

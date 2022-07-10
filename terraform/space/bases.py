@@ -36,6 +36,8 @@ class SpaceBase(Thread):
                         self.fuel = self.fuel - 50
                     else:
                         self.fuel = self.fuel - 100
+                    return True
+                return False
             case 'FALCON':
                 if self.uranium > 35 and self.fuel > 90:
                     self.uranium = self.uranium - 35
@@ -44,7 +46,9 @@ class SpaceBase(Thread):
                     elif self.name == 'MOON':
                         self.fuel = self.fuel - 90
                     else:
-                        self.fuel = self.fuel - 120
+                        self.fuel = self.fuel - 12
+                    return True
+                return False
             case 'LION':
                 if self.uranium > 35 and self.fuel > 100:
                     self.uranium = self.uranium - 35
@@ -52,6 +56,8 @@ class SpaceBase(Thread):
                         self.fuel = self.fuel - 100
                     else:
                         self.fuel = self.fuel - 115
+                    return True
+                return False
             case _:
                 print("Invalid rocket name")
 
@@ -105,10 +111,15 @@ class SpaceBase(Thread):
             control_planeta = globals.get_planet_controls(planeta)
             control_planeta.acquire_satelite()
             if globals.get_planets_ref()[planeta].terraform > 0:
-                # to do: verificar se tem combustível e urânio
-
+                #if (self.base_rocket_resources(foguete)): 
+                '''tive que comentar o if porque deu um loop muito louco'''
                 self.base_rocket_resources(foguete)
                 rocket = Rocket(foguete)
                 rocket.launch(self, globals.get_planets_ref()[planeta])
+                #else: 
+                    # sugestão para reabastecer caso seja necessário
+                    # dúvida: a função base_rocket_resources cobre todos os casos necessários
+                    #self.refuel_oil()
+                    #self.refuel_uranium
             control_planeta.release_satelite()  # talvez mover p/ cima
             pass

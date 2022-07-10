@@ -1,5 +1,7 @@
 from random import randrange, random
 from time import sleep
+import globals
+from stars.planet import Planet
 
 
 class Rocket:
@@ -15,14 +17,19 @@ class Rocket:
             self.uranium_cargo = 0
             
 
-    def nuke(self, planet): # Permitida a alteração
+    def nuke(self, planet:Planet): # Permitida a alteração
+        controle = globals.get_planet_controls(planet.name)
+        polo = randrange(0, 2) # a princípio a escolha do polo é por sorteio, talvez implementar uma decisão depois
+        controle.acquire_mutex_polo(polo)
+        if polo == 0:
+            print(f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on North Pole")
+        else:
+            print(f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on South Pole")
         damage = self.damage()
         planet.nuke_detected(damage)
-        print(f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on North Pole")
-        print(f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on South Pole")
-        pass
+        controle.release_mutex_polo(polo)
     
-    def voyage(self, planet): # Permitida a alteração (com ressalvas)
+    def voyage(self, planet:Planet): # Permitida a alteração (com ressalvas)
 
         # Essa chamada de código (do_we_have_a_problem e simulation_time_voyage) não pode ser retirada.
         # Você pode inserir código antes ou depois dela e deve

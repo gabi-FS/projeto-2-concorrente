@@ -1,4 +1,5 @@
 from threading import Lock
+from singleton import PlanetControls
 
 #  A total alteração deste arquivo é permitida.
 #  Lembre-se de que algumas variáveis globais são setadas no arquivo simulation.py
@@ -15,6 +16,7 @@ bases = {}
 mines = {}
 simulation_time = None
 dados_planeta = {} # dicionário de mutexes (alguma ideia melhor?)
+controles_planeta = {}
 
 
 def acquire_print():
@@ -30,7 +32,8 @@ def set_planets_ref(all_planets):
     planets = all_planets
     global dados_planeta # cria um dicionário de mutexes pra pegar os dados dos planetas
     for planet in all_planets.keys(): # (já que não pode mudar o construtor)
-        dados_planeta[planet] = Lock()
+        #dados_planeta[planet] = Lock()planeta
+        controles_planeta[planet] = PlanetControls()
 
 def get_planets_ref():
     global planets
@@ -78,3 +81,6 @@ def release_satelite(planeta):
     '''libera o lock para obter informações do planeta correspondente'''
     global dados_planeta
     dados_planeta[planeta].release()
+
+def get_planet_controls(nome_planeta:str):
+    return controles_planeta[nome_planeta.lower()]

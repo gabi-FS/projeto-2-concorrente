@@ -16,7 +16,8 @@ class Rocket:
             
 
     def nuke(self, planet): # Permitida a alteração
-        self.damage()
+        damage = self.damage()
+        planet.nuke_detected(damage)
         print(f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on North Pole")
         print(f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on South Pole")
         pass

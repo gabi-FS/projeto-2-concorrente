@@ -102,11 +102,13 @@ class SpaceBase(Thread):
             foguete = choice(['DRAGON', 'FALCON'])  # foguete aleatório
             # planeta aleatório
             planeta = choice(list(globals.get_planets_ref().keys()))
-            globals.acquire_satelite(planeta)
+            control_planeta = globals.get_planet_controls(planeta)
+            control_planeta.acquire_satelite()
             if globals.get_planets_ref()[planeta].terraform > 0:
                 # to do: verificar se tem combustível e urânio
+
                 self.base_rocket_resources(foguete)
                 rocket = Rocket(foguete)
-                rocket.launch(self, planeta)
-            globals.release_satelite(planeta)  # talvez mover p/ cima
+                rocket.launch(self, globals.get_planets_ref()[planeta])
+            control_planeta.release_satelite()  # talvez mover p/ cima
             pass

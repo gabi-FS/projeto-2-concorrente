@@ -4,9 +4,8 @@ from space.rocket import Rocket
 from random import choice
 
 '''O sincronismo de acesso das bases a essa reserva é tal que apenas uma base consegue acesso a mina de urânio e a reserva de petróleo por vez.'''
-# duvida se é um lock pras duas ou um pra cada
-lock_oil = Lock()
-lock_uranium = Lock()
+
+lock_mine_acess = Lock()  # global e usar em produce também? idk
 
 
 class SpaceBase(Thread):
@@ -14,7 +13,7 @@ class SpaceBase(Thread):
     ################################################
     # O CONSTRUTOR DA CLASSE NÃO PODE SER ALTERADO #
     ################################################
-    def __init__(self, name, fuel, uranium, rockets): # alteração no construtor autorizada
+    def __init__(self, name, fuel, uranium, rockets):  # alteração no construtor autorizada
         Thread.__init__(self)
         self.name = name
         self.uranium = 0
@@ -64,37 +63,42 @@ class SpaceBase(Thread):
     def refuel_oil(self):
         '''Se for base terrestre, adquire combustível a partir da mina de petroléo'''
         if self.name != 'MOON':
-            lock_oil.acquire()
+            lock_mine_acess.acquire()
+
             oil_mine = globals.get_mines_ref().get('oil_earth')
-            # não chequei se não tem essa quant -> ou se devo add o máximo
-            oil_mine.unities -= self.constraints[1]
-            self.fuel = self.constraints[1]
-            lock_oil.release()
+            while (oil_mine.unities < 100):
+                # ESPERA OCUPADA POR ENQUANTO PRA ESPERAR PRODUÇÃO MINIMA NECESSÁRIA
+                pass
+
+            filling = min(oil_mine.unities, (self.constraints[1] - self.fuel))
+            oil_mine.unities -= filling  # CONDIÇÃO DE CORRIDA
+            self.fuel += filling
+
+            lock_mine_acess.release()
         else:
-            # lua -> recebe através do foguete
-            # avaliar se espera por ele, mas aqui já adiciono quantidades
             '''Em uma viagem, o Lion consegue carregar com segurança 75 unidades de urânio e 120 unidades de combustível para a base lunar'''
-            if 120 > self.constraints[1]:
-                self.fuel = self.constraints[1]
-            else:
-                self.fuel = 120
+            filling = min(120, (self.constraints[1] - self.fuel))
+            self.fuel += filling
 
     def refuel_uranium(self):
         '''Se for base terrestre, adquire urânio a partir da mina de urânio'''
         if self.name != 'MOON':
-            lock_uranium.acquire()
+            lock_mine_acess.acquire()
+
             uranium_mine = globals.get_mines_ref().get('uranium_earth')
-            # não chequei se não tem essa quant na mina -> ou se devo add o máximo
-            uranium_mine.unities -= self.constraints[0]
-            self.uranium = self.constraints[0]
-            lock_uranium.release()
+            while (uranium_mine.unities < 35):
+                # ESPERA OCUPADA POR ENQUANTO PRA ESPERAR PRODUÇÃO MINIMA NECESSÁRIA
+                pass
+            filling = min(uranium_mine.unities,
+                          (self.constraints[0] - self.uranium))
+            uranium_mine.unities -= filling
+            self.uranium += filling
+
+            lock_mine_acess.release()
         else:
             # lua -> recebe através do foguete LION
-            if 75 > self.constraints[0]:
-                self.fuel = self.constraints[0]
-            else:
-                self.uranium = 75
-                # p.s: estou substituindo valores considerando que chamo as funções quando chega a 0,, por isso não somo as unidades
+            filling = min(75, (self.constraints[0] - self.uranium))
+            self.uranium += filling
 
     def run(self):
         globals.acquire_print()
@@ -105,21 +109,51 @@ class SpaceBase(Thread):
             pass
 
         while(True):
+
+            # checa se lua precisa de recursos
+            if self.name != 'MOON':
+                globals.get_lock_bool().acquire()
+                if globals.get_moon_call() == True:
+                    if (self.base_rocket_resources('LION')):
+                        # não estou usando fuel cargo do foguete ainda, avaliar
+                        rocket = Rocket('LION')
+                        # dúvida se funções de foguete estão apropriadas para Lion Launch
+                        # rocket.launch() -> fazer alternativa pra LION
+                        # preferivel dentro de funções do foguete
+                        # já que só ele tem certeza se launch teve sucesso
+                        globals.set_moon_call(False)
+                        globals.get_lock_moon().release()
+                        globals.get_lock_bool().release()
+
+                    else:
+                        # SEM RECURSOS PARA CHAMAR LION
+                        globals.get_lock_bool().release()
+                        self.refuel_oil()
+                        self.refuel_uranium()
+                else:
+                    globals.get_lock_bool().release()
+
+            # lançameto para atirar
             foguete = choice(['DRAGON', 'FALCON'])  # foguete aleatório
             # planeta aleatório
             planeta = choice(list(globals.get_planets_ref().keys()))
             control_planeta = globals.get_planet_controls(planeta)
             control_planeta.acquire_satelite()
             if globals.get_planets_ref()[planeta].terraform > 0:
-                #if (self.base_rocket_resources(foguete)): 
-                '''tive que comentar o if porque deu um loop muito louco'''
-                self.base_rocket_resources(foguete)
-                rocket = Rocket(foguete)
-                rocket.launch(self, globals.get_planets_ref()[planeta])
-                #else: 
-                    # sugestão para reabastecer caso seja necessário
+                if (self.base_rocket_resources(foguete)):
+                    rocket = Rocket(foguete)
+                    rocket.launch(self, globals.get_planets_ref()[planeta])
+                    control_planeta.release_satelite()
+                else:
+                    # SEM RECURSOS
                     # dúvida: a função base_rocket_resources cobre todos os casos necessários
-                    #self.refuel_oil()
-                    #self.refuel_uranium
-            control_planeta.release_satelite()  # talvez mover p/ cima
-            pass
+                    control_planeta.release_satelite()  # pra não dar deadlock
+                    if self.name == 'MOON':
+                        # CHAMA POR OUTRAS THREADS
+                        globals.get_lock_bool().acquire()
+                        globals.set_moon_call(True)
+                        globals.get_lock_bool().release()
+                        globals.get_lock_moon().acquire()  # espera lion chegar
+
+                    self.refuel_oil()
+                    self.refuel_uranium()

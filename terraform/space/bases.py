@@ -116,16 +116,13 @@ class SpaceBase(Thread):
                 moon_controls.acquire_bool_mutex()
                 if moon_controls.calling:
                     if (self.base_rocket_resources('LION')):
-                        # não estou usando fuel cargo do foguete ainda, avaliar
-                        rocket = Rocket('LION')
-                        # dúvida se funções de foguete estão apropriadas para Lion Launch
-                        # rocket.launch() -> fazer alternativa pra LION
-                        # preferivel dentro de funções do foguete
-                        # já que só ele tem certeza se launch teve sucesso
+                        # FALTA: checar questão da carga de lion.
+                        # base rocket resources é suficiente ou devo tirar mais
+                        # para preencher atributos do foguete?
                         moon_controls.calling = False
-                        moon_controls.post_sem()
+                        rocket = Rocket('LION')
+                        rocket.launch_lion(self)
                         moon_controls.release_bool_mutex()
-
                     else:
                         # SEM RECURSOS PARA CHAMAR LION
                         moon_controls.release_bool_mutex()
@@ -134,7 +131,8 @@ class SpaceBase(Thread):
                 else:
                     moon_controls.release_bool_mutex()
 
-            # lançameto para atirar
+            # lançamento para atirar (p.s: ter cuidado com a diretiva)
+            # "um lançamento por vez"
             foguete = choice(['DRAGON', 'FALCON'])  # foguete aleatório
             # planeta aleatório
             planeta = choice(list(globals.get_planets_ref().keys()))

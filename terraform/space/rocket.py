@@ -15,41 +15,61 @@ class Rocket:
         if(self.name == 'LION'):
             self.fuel_cargo = 0
             self.uranium_cargo = 0
-            
 
-    def nuke(self, planet:Planet): # Permitida a alteração
+    def nuke(self, planet: Planet):  # Permitida a alteração
         controle = globals.get_planet_controls(planet.name)
-        polo = randrange(0, 2) # a princípio a escolha do polo é por sorteio, talvez implementar uma decisão depois
+        # a princípio a escolha do polo é por sorteio, talvez implementar uma decisão depois
+        polo = randrange(0, 2)
         controle.acquire_mutex_polo(polo)
         if polo == 0:
-            print(f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on North Pole")
+            print(
+                f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on North Pole")
         else:
-            print(f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on South Pole")
+            print(
+                f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on South Pole")
         damage = self.damage()
         planet.nuke_detected(damage)
         controle.release_mutex_polo(polo)
-    
-    def voyage(self, planet:Planet): # Permitida a alteração (com ressalvas)
+
+    def voyage(self, planet: Planet):  # Permitida a alteração (com ressalvas)
 
         # Essa chamada de código (do_we_have_a_problem e simulation_time_voyage) não pode ser retirada.
         # Você pode inserir código antes ou depois dela e deve
         # usar essa função.
         self.simulation_time_voyage(planet)
-        failure =  self.do_we_have_a_problem()
+        failure = self.do_we_have_a_problem()
         if (not failure):
-            self.nuke(planet) # só chega ao planeta se não houve falha
+            self.nuke(planet)  # só chega ao planeta se não houve falha
 
+    def launch_lion(self, base):
+        ''' lion da terra pra lua: novo launch pois não posso alterar o antigo e nem usar @overload '''
 
+        moon_controls = globals.get_moon_controls()
+        if(self.successfull_launch(base)):
+            print(f"[{self.name} - {self.id}] launched.")
+
+            # viagem
+            sleep(0.004)  # tempo deve ser 4 dias, ve qual sleep
+            failure = self.do_we_have_a_problem()
+            if (not failure):
+                moon_controls.post_sem()
+            else:
+                moon_controls.calling = True
+        else:
+            moon_controls.calling = True
 
     ####################################################
-    #                   ATENÇÃO                        # 
+    #                   ATENÇÃO                        #
     #     AS FUNÇÕES ABAIXO NÃO PODEM SER ALTERADAS    #
     ###################################################
+
     def simulation_time_voyage(self, planet):
         if planet.name == 'MARS':
-            sleep(2) # Marte tem uma distância aproximada de dois anos do planeta Terra.
+            # Marte tem uma distância aproximada de dois anos do planeta Terra.
+            sleep(2)
         else:
-            sleep(5) # IO, Europa e Ganimedes tem uma distância aproximada de cinco anos do planeta Terra.
+            # IO, Europa e Ganimedes tem uma distância aproximada de cinco anos do planeta Terra.
+            sleep(5)
 
     def do_we_have_a_problem(self):
         if(random() < 0.15):
@@ -60,23 +80,24 @@ class Rocket:
                 self.meteor_collision()
                 return True
         return False
-            
+
     def general_failure(self):
         print(f"[GENERAL FAILURE] - {self.name} ROCKET id: {self.id}")
-    
+
     def meteor_collision(self):
         print(f"[METEOR COLLISION] - {self.name} ROCKET id: {self.id}")
 
     def successfull_launch(self, base):
         if random() <= 0.1:
-            print(f"[LAUNCH FAILED] - {self.name} ROCKET id:{self.id} on {base.name}")
+            print(
+                f"[LAUNCH FAILED] - {self.name} ROCKET id:{self.id} on {base.name}")
             return False
         return True
-    
+
     def damage(self):
         return random()
 
     def launch(self, base, planet):
         if(self.successfull_launch(base)):
             print(f"[{self.name} - {self.id}] launched.")
-            self.voyage(planet)        
+            self.voyage(planet)

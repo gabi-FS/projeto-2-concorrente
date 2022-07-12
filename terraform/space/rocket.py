@@ -54,9 +54,13 @@ class Rocket:
             if (not failure):
                 moon_controls.post_sem()
             else:
+                moon_controls.acquire_bool_mutex()
                 moon_controls.calling = True
+                moon_controls.release_bool_mutex()
         else:
+            moon_controls.acquire_bool_mutex()
             moon_controls.calling = True
+            moon_controls.release_bool_mutex()
 
     ####################################################
     #                   ATENÇÃO                        #

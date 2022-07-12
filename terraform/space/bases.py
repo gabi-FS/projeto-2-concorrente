@@ -28,35 +28,54 @@ class SpaceBase(Thread):
     def base_rocket_resources(self, rocket_name):
         match rocket_name:
             case 'DRAGON':
-                if self.uranium > 35 and self.fuel > 50:
-                    self.uranium = self.uranium - 35
+                if self.uranium > 35:
                     if self.name == 'ALCANTARA':
-                        self.fuel = self.fuel - 70
+                        if self.fuel >= 70:
+                            self.uranium = self.uranium - 35
+                            self.fuel = self.fuel - 70
+                            return True
                     elif self.name == 'MOON':
-                        self.fuel = self.fuel - 50
+                        if self.fuel >= 50:
+                            self.uranium = self.uranium - 35
+                            self.fuel = self.fuel - 50
+                            return True
                     else:
-                        self.fuel = self.fuel - 100
-                    return True
+                        if self.fuel >= 100:
+                            self.uranium = self.uranium - 35
+                            self.fuel = self.fuel - 100
+                            return True
                 return False
             case 'FALCON':
-                if self.uranium > 35 and self.fuel > 90:
-                    self.uranium = self.uranium - 35
+                if self.uranium > 35:
                     if self.name == 'ALCANTARA':
-                        self.fuel = self.fuel - 100
+                        if self.fuel >= 100:
+                            self.uranium = self.uranium - 35
+                            self.fuel = self.fuel - 100
+                            return True
                     elif self.name == 'MOON':
-                        self.fuel = self.fuel - 90
+                        if self.fuel >= 90:
+                            self.uranium = self.uranium - 35
+                            self.fuel = self.fuel - 90
+                            return True
                     else:
-                        self.fuel = self.fuel - 12
-                    return True
+                        if self.fuel >= 120:
+                            self.uranium = self.uranium - 35
+                            self.fuel = self.fuel - 120
+                            return True
                 return False
             case 'LION':
-                if self.uranium > 35 and self.fuel > 100:
-                    self.uranium = self.uranium - 35
+                # estarei contando launch + uso da carga máxima! avaliar se necessário
+                if self.uranium > 75:
                     if self.name == 'ALCANTARA':
-                        self.fuel = self.fuel - 100
+                        if self.fuel >= 220:
+                            self.uranium = self.uranium - 75
+                            self.fuel = self.fuel - 220
+                            return True
                     else:
-                        self.fuel = self.fuel - 115
-                    return True
+                        if self.fuel >= 235:
+                            self.uranium = self.uranium - 75
+                            self.fuel = self.fuel - 115
+                            return True
                 return False
             case _:
                 print("Invalid rocket name")
@@ -117,12 +136,12 @@ class SpaceBase(Thread):
                 if moon_controls.calling:
                     if (self.base_rocket_resources('LION')):
                         # FALTA: checar questão da carga de lion.
-                        # base rocket resources é suficiente ou devo tirar mais
-                        # para preencher atributos do foguete?
+                        # tiro suficiente pra carga em base_rockets
+                        # não estou usando atributos de carga
                         moon_controls.calling = False
+                        moon_controls.release_bool_mutex()
                         rocket = Rocket('LION')
                         rocket.launch_lion(self)
-                        moon_controls.release_bool_mutex()
                     else:
                         # SEM RECURSOS PARA CHAMAR LION
                         moon_controls.release_bool_mutex()

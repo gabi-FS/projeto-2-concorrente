@@ -1,5 +1,5 @@
 from threading import Lock, Semaphore
-from singleton import PlanetControls
+from singleton import PlanetControls, MoonControls
 
 #  A total alteração deste arquivo é permitida.
 #  Lembre-se de que algumas variáveis globais são setadas no arquivo simulation.py
@@ -16,10 +16,7 @@ bases = {}
 mines = {}
 simulation_time = None
 controles_planeta = {}  # dicionário de objetos PlanetControls
-moon_in_need = False
-
-lock_bool = Lock()
-lock_moon = Semaphore(0)
+moon_controls = MoonControls()
 
 
 def acquire_print():
@@ -91,23 +88,6 @@ def get_planet_controls(nome_planeta: str):
     return controles_planeta[nome_planeta.lower()]
 
 
-def get_moon_call():
-    global moon_in_need
-    return moon_in_need
-
-
-def set_moon_call(new_bool: bool):
-    global moon_in_need
-    moon_in_need = new_bool
-
-
-def get_lock_bool():
-    ''' adquire lock que protege bool moon_in_need *mover pra outro lugar?'''
-    global lock_bool
-    return lock_bool
-
-
-def get_lock_moon():
-    ''' semáforo de espera por lançamento de lion com recursos '''
-    global lock_moon
-    return lock_moon
+def get_moon_controls():
+    global moon_controls
+    return moon_controls

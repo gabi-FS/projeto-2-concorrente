@@ -105,6 +105,7 @@ class SpaceBase(Thread):
         self.print_space_base_info()
         globals.release_print()
 
+        moon_controls = globals.get_moon_controls()
         while(globals.get_release_system() == False):
             pass
 
@@ -112,8 +113,8 @@ class SpaceBase(Thread):
 
             # checa se lua precisa de recursos
             if self.name != 'MOON':
-                globals.get_lock_bool().acquire()
-                if globals.get_moon_call() == True:
+                moon_controls.acquire_bool_mutex()
+                if moon_controls.calling:
                     if (self.base_rocket_resources('LION')):
                         # não estou usando fuel cargo do foguete ainda, avaliar
                         rocket = Rocket('LION')
@@ -121,17 +122,17 @@ class SpaceBase(Thread):
                         # rocket.launch() -> fazer alternativa pra LION
                         # preferivel dentro de funções do foguete
                         # já que só ele tem certeza se launch teve sucesso
-                        globals.set_moon_call(False)
-                        globals.get_lock_moon().release()
-                        globals.get_lock_bool().release()
+                        moon_controls.calling = False
+                        moon_controls.post_sem()
+                        moon_controls.release_bool_mutex()
 
                     else:
                         # SEM RECURSOS PARA CHAMAR LION
-                        globals.get_lock_bool().release()
+                        moon_controls.release_bool_mutex()
                         self.refuel_oil()
                         self.refuel_uranium()
                 else:
-                    globals.get_lock_bool().release()
+                    moon_controls.release_bool_mutex()
 
             # lançameto para atirar
             foguete = choice(['DRAGON', 'FALCON'])  # foguete aleatório
@@ -150,10 +151,10 @@ class SpaceBase(Thread):
                     control_planeta.release_satelite()  # pra não dar deadlock
                     if self.name == 'MOON':
                         # CHAMA POR OUTRAS THREADS
-                        globals.get_lock_bool().acquire()
-                        globals.set_moon_call(True)
-                        globals.get_lock_bool().release()
-                        globals.get_lock_moon().acquire()  # espera lion chegar
+                        moon_controls.acquire_bool_mutex()
+                        moon_controls.calling = True
+                        moon_controls.release_bool_mutex()
+                        moon_controls.wait_sem()
 
                     self.refuel_oil()
                     self.refuel_uranium()

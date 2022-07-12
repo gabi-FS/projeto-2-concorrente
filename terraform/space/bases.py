@@ -2,6 +2,7 @@ import globals
 from threading import Thread, Lock
 from space.rocket import Rocket
 from random import choice
+from time import sleep
 
 '''O sincronismo de acesso das bases a essa reserva é tal que apenas uma base consegue acesso a mina de urânio e a reserva de petróleo por vez.'''
 
@@ -66,9 +67,8 @@ class SpaceBase(Thread):
             lock_mine_acess.acquire()
 
             oil_mine = globals.get_mines_ref().get('oil_earth')
-            while (oil_mine.unities < 100):
-                # ESPERA OCUPADA POR ENQUANTO PRA ESPERAR PRODUÇÃO MINIMA NECESSÁRIA
-                pass
+            if (oil_mine.unities < 100):
+                sleep(0.05)
 
             filling = min(oil_mine.unities, (self.constraints[1] - self.fuel))
             oil_mine.unities -= filling  # CONDIÇÃO DE CORRIDA
@@ -86,9 +86,9 @@ class SpaceBase(Thread):
             lock_mine_acess.acquire()
 
             uranium_mine = globals.get_mines_ref().get('uranium_earth')
-            while (uranium_mine.unities < 35):
-                # ESPERA OCUPADA POR ENQUANTO PRA ESPERAR PRODUÇÃO MINIMA NECESSÁRIA
-                pass
+            if (uranium_mine.unities < 35):
+                sleep(0.05)
+
             filling = min(uranium_mine.unities,
                           (self.constraints[0] - self.uranium))
             uranium_mine.unities -= filling
@@ -156,3 +156,5 @@ class SpaceBase(Thread):
 
                     self.refuel_oil()
                     self.refuel_uranium()
+            else:
+                control_planeta.release_satelite()

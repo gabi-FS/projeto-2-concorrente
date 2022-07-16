@@ -1,3 +1,4 @@
+import threading
 import globals
 from threading import Thread, Lock
 from space.rocket import Rocket
@@ -119,6 +120,15 @@ class SpaceBase(Thread):
             filling = min(75, (self.constraints[0] - self.uranium))
             self.uranium += filling
 
+    def prepare_launch(self, rocket:Rocket, destino):
+        if destino == 'MOON':
+            r = Thread(target=rocket.launch_lion(self))
+            r.start()
+        else:
+            r = Thread(target=rocket.launch(self, globals.get_planets_ref()[destino]), )
+            r.start()
+            
+
     def run(self):
         globals.acquire_print()
         self.print_space_base_info()
@@ -141,7 +151,8 @@ class SpaceBase(Thread):
                         moon_controls.calling = False
                         moon_controls.release_bool_mutex()
                         rocket = Rocket('LION')
-                        rocket.launch_lion(self)
+                        #rocket.launch_lion(self)
+                        self.prepare_launch(rocket, 'MOON')
                     else:
                         # SEM RECURSOS PARA CHAMAR LION
                         moon_controls.release_bool_mutex()
@@ -160,8 +171,9 @@ class SpaceBase(Thread):
             if globals.get_planets_ref()[planeta].terraform > 0:
                 if (self.base_rocket_resources(foguete)):
                     rocket = Rocket(foguete)
-                    rocket.launch(self, globals.get_planets_ref()[planeta])
+                    #rocket.launch(self, globals.get_planets_ref()[planeta])
                     control_planeta.release_satelite()
+                    self.prepare_launch(rocket, planeta)
                 else:
                     # SEM RECURSOS
                     # dúvida: a função base_rocket_resources cobre todos os casos necessários

@@ -27,8 +27,8 @@ class Rocket:
         else:
             print(
                 f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on South Pole")
-        damage = self.damage()
-        planet.nuke_detected(damage)
+        planet.set_damage(self.damage())
+        controle.release_nuke_sem()
         controle.release_mutex_polo(polo)
 
     def voyage(self, planet: Planet):  # Permitida a alteração (com ressalvas)

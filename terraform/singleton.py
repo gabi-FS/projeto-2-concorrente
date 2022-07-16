@@ -16,10 +16,18 @@ class PlanetControls(metaclass=Singleton):
     def __init__(self) -> None:
         self.satelite = Lock()
         self.nuke_mutex = Lock()
+        self.nuke_sem = Semaphore(0)
+        self.sem_damage = Semaphore(1)
         self.polos = (Lock(), Lock())
 
     def acquire_nuke_mutex(self):
         self.nuke_mutex.acquire()
+    
+    def acquire_nuke_sem(self):
+        self.nuke_sem.acquire()
+
+    def acquire_sem_damage(self):
+        self.sem_damage.acquire()
 
     def acquire_satelite(self):
         self.satelite.acquire()
@@ -29,6 +37,12 @@ class PlanetControls(metaclass=Singleton):
 
     def release_nuke_mutex(self):
         self.nuke_mutex.release()
+
+    def release_nuke_sem(self):
+        self.nuke_sem.release()
+
+    def release_sem_damage(self):
+        self.sem_damage.release()
 
     def release_satelite(self):
         self.satelite.release()

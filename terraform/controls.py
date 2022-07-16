@@ -1,6 +1,5 @@
-from threading import Thread, Lock, Semaphore, Condition, BoundedSemaphore, enumerate
+from threading import Thread, Lock, Semaphore, Condition, BoundedSemaphore
 import globals
-from time import sleep
 
 
 class Singleton(type):

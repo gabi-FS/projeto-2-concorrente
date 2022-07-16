@@ -22,7 +22,7 @@ class PlanetControls():
 
     def acquire_nuke_mutex(self):
         self.nuke_mutex.acquire()
-    
+
     def acquire_nuke_sem(self):
         self.nuke_sem.acquire()
 
@@ -56,6 +56,8 @@ class MoonControls(metaclass=Singleton):
         self.__calling = False
         self.bool_mutex = Lock()
         self.waiting_sem = Semaphore(0)
+        self.filling_fuel = 0
+        self.filling_uranium = 0
 
     @property
     def calling(self):
@@ -76,5 +78,5 @@ class MoonControls(metaclass=Singleton):
         self.waiting_sem.acquire()
 
     def post_sem(self):
-        """Libera MOON para refuel, visto que LION chegou """
+        """Libera MOON para continuar seu funcionamento após refuels"""
         self.waiting_sem.release()

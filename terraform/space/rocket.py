@@ -52,6 +52,10 @@ class Rocket:
             sleep(0.004)  # tempo deve ser 4 dias, ve qual sleep
             failure = self.do_we_have_a_problem()
             if (not failure):
+                # chegou à base lunar
+                moon_base = globals.get_bases_ref()['moon']
+                moon_base.refuel_uranium(self.uranium_cargo)
+                moon_base.refuel_oil(self.fuel_cargo)
                 moon_controls.post_sem()
             else:
                 moon_controls.acquire_bool_mutex()

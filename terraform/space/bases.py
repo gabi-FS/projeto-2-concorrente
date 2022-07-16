@@ -26,7 +26,7 @@ class SpaceBase(Thread):
     def print_space_base_info(self):
         print(f"🔭 - [{self.name}] → 🪨  {self.uranium}/{self.constraints[0]} URANIUM  ⛽ {self.fuel}/{self.constraints[1]}  🚀 {self.rockets}/{self.constraints[2]}")
 
-    def base_rocket_resources(self, rocket_name):
+    def base_rocket_resources(self, rocket_name, uranium_cargo=75, fuel_cargo=120):
         match rocket_name:
             case 'DRAGON':
                 if self.uranium > 35:
@@ -65,24 +65,24 @@ class SpaceBase(Thread):
                             return True
                 return False
             case 'LION':
-                # estarei contando launch + uso da carga máxima! avaliar se necessário
-                if self.uranium > 75:
+                if self.uranium > uranium_cargo:
                     if self.name == 'ALCANTARA':
-                        if self.fuel >= 220:
-                            self.uranium = self.uranium - 75
-                            self.fuel = self.fuel - 220
+                        if self.fuel >= (100 + fuel_cargo):
+                            self.uranium = self.uranium - uranium_cargo
+                            self.fuel = self.fuel - (100 + fuel_cargo)
                             return True
                     else:
-                        if self.fuel >= 235:
-                            self.uranium = self.uranium - 75
-                            self.fuel = self.fuel - 115
+                        if self.fuel >= (115 + fuel_cargo):
+                            self.uranium = self.uranium - uranium_cargo
+                            self.fuel = self.fuel - (115 + fuel_cargo)
                             return True
                 return False
             case _:
                 print("Invalid rocket name")
 
-    def refuel_oil(self):
-        '''Se for base terrestre, adquire combustível a partir da mina de petroléo'''
+    def refuel_oil(self, lion_cargo=0):
+        '''Se for base terrestre, adquire combustível a partir da mina de petroléo.
+        Se for base lunar, reabastece com carga entregue.'''
         if self.name != 'MOON':
             lock_mine_acess.acquire()
 
@@ -96,12 +96,11 @@ class SpaceBase(Thread):
 
             lock_mine_acess.release()
         else:
-            '''Em uma viagem, o Lion consegue carregar com segurança 75 unidades de urânio e 120 unidades de combustível para a base lunar'''
-            filling = min(120, (self.constraints[1] - self.fuel))
-            self.fuel += filling
+            self.fuel += lion_cargo
 
-    def refuel_uranium(self):
-        '''Se for base terrestre, adquire urânio a partir da mina de urânio'''
+    def refuel_uranium(self, lion_cargo=0):
+        '''Se for base terrestre, adquire urânio a partir da mina de urânio.
+        Se for base lunar, reabastece com carga entregue. '''
         if self.name != 'MOON':
             lock_mine_acess.acquire()
 
@@ -116,18 +115,16 @@ class SpaceBase(Thread):
 
             lock_mine_acess.release()
         else:
-            # lua -> recebe através do foguete LION
-            filling = min(75, (self.constraints[0] - self.uranium))
-            self.uranium += filling
+            self.uranium += lion_cargo
 
-    def prepare_launch(self, rocket:Rocket, destino):
+    def prepare_launch(self, rocket: Rocket, destino):
         if destino == 'MOON':
-            r = Thread(target=lambda:rocket.launch_lion(self))
+            r = Thread(target=lambda: rocket.launch_lion(self))
             r.start()
         else:
-            r = Thread(target=lambda:rocket.launch(self, globals.get_planets_ref()[destino]), )
+            r = Thread(target=lambda: rocket.launch(
+                self, globals.get_planets_ref()[destino]), )
             r.start()
-            
 
     def run(self):
         globals.acquire_print()
@@ -144,29 +141,36 @@ class SpaceBase(Thread):
             if self.name != 'MOON':
                 moon_controls.acquire_bool_mutex()
                 if moon_controls.calling:
-                    if (self.base_rocket_resources('LION')):
-                        # FALTA: checar questão da carga de lion.
-                        # tiro suficiente pra carga em base_rockets
-                        # não estou usando atributos de carga
+                    # leio quantidade de carga necessária no "relatório"
+                    fuel_cargo = moon_controls.filling_fuel
+                    uranium_cargo = moon_controls.filling_uranium
+                    if (self.base_rocket_resources('LION', uranium_cargo, fuel_cargo)):
                         moon_controls.calling = False
                         moon_controls.release_bool_mutex()
                         rocket = Rocket('LION')
-                        #rocket.launch_lion(self)
+                        rocket.fuel_cargo = fuel_cargo
+                        rocket.uranium_cargo = uranium_cargo
                         self.prepare_launch(rocket, 'MOON')
                     else:
                         # SEM RECURSOS PARA CHAMAR LION
                         moon_controls.release_bool_mutex()
                         self.refuel_oil()
                         self.refuel_uranium()
+
+                        # continue garante que ele não vai gastar o que tem pra lançar outro foguete depois disso
+                        continue
                 else:
                     moon_controls.release_bool_mutex()
 
             # lançamento para atirar (p.s: ter cuidado com a diretiva)
             # "um lançamento por vez"
-            foguete = choice(['DRAGON', 'FALCON'])  # foguete aleatório
-            # planeta aleatório
+
+            # foguete e planeta aleatórios
+            foguete = choice(['DRAGON', 'FALCON'])
             planeta = choice(list(globals.get_planets_ref().keys()))
             control_planeta = globals.get_planet_controls(planeta)
+
+            # protege leitura de dados do planeta
             control_planeta.acquire_satelite()
             if globals.get_planets_ref()[planeta].terraform > 0:
                 if (self.base_rocket_resources(foguete)):
@@ -176,16 +180,24 @@ class SpaceBase(Thread):
                     self.prepare_launch(rocket, planeta)
                 else:
                     # SEM RECURSOS
-                    # dúvida: a função base_rocket_resources cobre todos os casos necessários
-                    control_planeta.release_satelite()  # pra não dar deadlock
+                    control_planeta.release_satelite()
                     if self.name == 'MOON':
+                        # Escreve quantidade necessária no "relatório"
+                        moon_controls.filling_fuel = min(
+                            120, (self.constraints[1] - self.fuel))
+                        moon_controls.filling_uranium = min(
+                            75, (self.constraints[0] - self.uranium))
+
                         # CHAMA POR OUTRAS THREADS
                         moon_controls.acquire_bool_mutex()
                         moon_controls.calling = True
                         moon_controls.release_bool_mutex()
-                        moon_controls.wait_sem()
 
-                    self.refuel_oil()
-                    self.refuel_uranium()
+                        # Espera post vindo do foguete que chega à base
+                        moon_controls.wait_sem()
+                    else:
+                        # Base terrestre: adquire das minas
+                        self.refuel_oil()
+                        self.refuel_uranium()
             else:
                 control_planeta.release_satelite()

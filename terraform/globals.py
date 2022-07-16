@@ -1,5 +1,6 @@
-from threading import Lock, Semaphore
+from threading import Lock
 from controls import PlanetControls, MoonControls
+from space.bases import SpaceBase
 
 #  A total alteração deste arquivo é permitida.
 #  Lembre-se de que algumas variáveis globais são setadas no arquivo simulation.py
@@ -47,7 +48,7 @@ def set_bases_ref(all_bases):
     bases = all_bases
 
 
-def get_bases_ref():
+def get_bases_ref() -> dict[str, SpaceBase]:
     global bases
     return bases
 
@@ -82,12 +83,12 @@ def get_simulation_time():
     return simulation_time
 
 
-def get_planet_controls(nome_planeta: str):
+def get_planet_controls(nome_planeta: str) -> PlanetControls:
     '''Retorna um objeto referente ao planeta informado, de uma classe cujos 
     atributos são ferramentas de controle'''
     return controles_planeta[nome_planeta.lower()]
 
 
-def get_moon_controls():
+def get_moon_controls() -> MoonControls:
     global moon_controls
     return moon_controls

@@ -12,7 +12,7 @@ class Singleton(type):
         return cls.__instancias[cls]
 
 
-class PlanetControls(metaclass=Singleton):
+class PlanetControls():
     def __init__(self) -> None:
         self.satelite = Lock()
         self.nuke_mutex = Lock()

@@ -1,6 +1,6 @@
 from threading import Thread
 import globals
-from singleton import PlanetControls
+from controls import PlanetControls
 
 class Planet(Thread):
 

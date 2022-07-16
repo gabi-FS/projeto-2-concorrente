@@ -122,10 +122,10 @@ class SpaceBase(Thread):
 
     def prepare_launch(self, rocket:Rocket, destino):
         if destino == 'MOON':
-            r = Thread(target=rocket.launch_lion(self))
+            r = Thread(target=lambda:rocket.launch_lion(self))
             r.start()
         else:
-            r = Thread(target=rocket.launch(self, globals.get_planets_ref()[destino]), )
+            r = Thread(target=lambda:rocket.launch(self, globals.get_planets_ref()[destino]), )
             r.start()
             
 

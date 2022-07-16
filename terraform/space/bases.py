@@ -124,10 +124,12 @@ class SpaceBase(Thread):
     def prepare_launch(self, rocket: Rocket, destino):
         if destino == 'MOON':
             r = Thread(target=lambda: rocket.launch_lion(self))
+            r.daemon = True
             r.start()
         else:
             r = Thread(target=lambda: rocket.launch(
                 self, globals.get_planets_ref()[destino]), )
+            r.daemon = True
             r.start()
 
     def run(self):
@@ -139,8 +141,7 @@ class SpaceBase(Thread):
         while(globals.get_release_system() == False):
             pass
 
-        while(True):
-
+        while(globals.get_finish_system() == False):
             # checa se lua precisa de recursos
             if self.name != 'MOON':
                 moon_controls.acquire_bool_mutex()
@@ -168,7 +169,6 @@ class SpaceBase(Thread):
 
             # lançamento para atirar (p.s: ter cuidado com a diretiva)
             # "um lançamento por vez"
-
             # foguete e planeta aleatórios
             foguete = choice(['DRAGON', 'FALCON'])
             planeta = choice(list(globals.get_planets_ref().keys()))

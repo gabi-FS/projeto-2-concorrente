@@ -2,20 +2,18 @@ from threading import Thread
 import globals
 from controls import PlanetControls
 
+
 class Planet(Thread):
 
     ################################################
     # O CONSTRUTOR DA CLASSE NÃO PODE SER ALTERADO #
     ################################################
-    def __init__(self, terraform,name):
+    def __init__(self, terraform, name):
         Thread.__init__(self)
         self.terraform = terraform
         self.name = name
 
     def nuke_detected(self):
-        # while(self.terraform > 0):
-        #while(before_percentage == self.terraform):
-        
         self.controle.acquire_nuke_mutex()
         if self.terraform > 0:
             before_percentage = self.terraform
@@ -23,7 +21,9 @@ class Planet(Thread):
                 self.terraform = 0
             else:
                 self.terraform = before_percentage - self.damage
-        print(f"[NUKE DETECTION] - The planet {self.name} was bombed. {self.terraform}% UNHABITABLE")
+            print(
+                f"[NUKE DETECTION] - The planet {self.name} was bombed. {self.terraform}% UNHABITABLE")
+
         self.controle.release_sem_damage()
         self.controle.release_nuke_mutex()
 
@@ -44,9 +44,10 @@ class Planet(Thread):
             pass
 
         self.controle = globals.get_planet_controls(self.name)
-        
+
         while(True):
             self.controle.acquire_nuke_sem()
             self.nuke_detected()
 
-        
+            if self.terraform == 0:
+                break

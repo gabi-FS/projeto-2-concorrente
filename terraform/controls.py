@@ -1,4 +1,6 @@
-from threading import Thread, Lock, Semaphore, Condition, BoundedSemaphore
+from threading import Thread, Lock, Semaphore, Condition, BoundedSemaphore, enumerate
+import globals
+from time import sleep
 
 
 class Singleton(type):
@@ -80,3 +82,19 @@ class MoonControls(metaclass=Singleton):
     def post_sem(self):
         """Libera MOON para continuar seu funcionamento após refuels"""
         self.waiting_sem.release()
+
+
+class Observer(Thread):
+    def __init__(self):
+        Thread.__init__(self, name='observer')
+
+    def run(self):
+        planetas = globals.get_planets_ref()
+        for planeta in planetas.values():
+            planeta.join()
+
+        # todos planetas finalizaram
+        globals.set_finish_system()
+        globals.moon_controls.post_sem()  # libera lua terminar
+        print(
+            f'###### Simulation ended with {globals.get_simulation_time().current_time} years total ######')

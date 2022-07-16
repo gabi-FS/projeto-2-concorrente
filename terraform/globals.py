@@ -1,5 +1,5 @@
 from threading import Lock
-from controls import PlanetControls, MoonControls
+from controls import PlanetControls, MoonControls, Observer
 from space.bases import SpaceBase
 
 #  A total alteração deste arquivo é permitida.
@@ -20,6 +20,8 @@ controles_planeta = {}  # dicionário de objetos PlanetControls
 moon_controls = MoonControls()
 oil_unities_lock = Lock()
 uranium_unities_lock = Lock()
+finish_system = False
+observer = Observer()
 
 
 def acquire_print():
@@ -38,6 +40,7 @@ def set_planets_ref(all_planets):
     global dados_planeta  # cria um dicionário de mutexes pra pegar os dados dos planetas
     for planet in all_planets.keys():  # (já que não pode mudar o construtor)
         controles_planeta[planet] = PlanetControls()
+    observer.start()
 
 
 def get_planets_ref():
@@ -55,7 +58,7 @@ def get_bases_ref() -> dict[str, SpaceBase]:
     return bases
 
 
-def set_mines_ref(all_mines):
+def set_mines_ref(all_mines: dict):
     global mines
     mines = all_mines
 
@@ -114,3 +117,13 @@ def acquire_uranium_unities():
 def release_uranium_unities():
     global uranium_unities_lock
     uranium_unities_lock.release()
+
+
+def get_finish_system():
+    global finish_system
+    return finish_system
+
+
+def set_finish_system():
+    global finish_system
+    finish_system = True

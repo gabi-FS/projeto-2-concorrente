@@ -17,6 +17,10 @@ class Rocket:
             self.uranium_cargo = 0
 
     def nuke(self, planet: Planet):  # Permitida a alteração
+        if planet.terraform == 0:
+            # será melhor alternativa? para não explodir se já terraformou
+            return
+
         controle = globals.get_planet_controls(planet.name)
         # a princípio a escolha do polo é por sorteio, talvez implementar uma decisão depois
         polo = randrange(0, 2)

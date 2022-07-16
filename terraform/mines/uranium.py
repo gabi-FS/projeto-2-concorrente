@@ -40,5 +40,6 @@ class StoreHouse(Thread):
         while(globals.get_release_system() == False):
             pass
 
-        while(True):
+        # alteração de while true para isso pois não consigo setar como daemo
+        while(globals.get_finish_system() == False):
             self.produce()

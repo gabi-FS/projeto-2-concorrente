@@ -16,11 +16,12 @@ from mines.uranium import StoreHouse
 #                                                                    #
 ######################################################################
 
+
 def main():
 
     # Alimentando a semente aleatória do sistema.
     seed(datetime.now())
-    
+
     # Limpando o terminal.
     os.system('cls' if os.name == 'nt' else 'clear')
 
@@ -44,14 +45,13 @@ def main():
     alcantara = SpaceBase('ALCANTARA', 20000, 100, 1)
     canaveral_cape = SpaceBase('CANAVERAL CAPE', 40000, 500, 5)
     moscow = SpaceBase('MOSCOW', 40000, 500, 5)
-    moon = SpaceBase('MOON', 30000, 150, 2) #alteração permitida
+    moon = SpaceBase('MOON', 30000, 150, 2)  # alteração permitida
 
     # Iniciando as threads das bases espaciais.
     alcantara.start()
     canaveral_cape.start()
     moscow.start()
     moon.start()
-
 
     # Carregando as minas de combustível e urânio.
     sleep(0.5)
@@ -63,7 +63,6 @@ def main():
     # Iniciando as minas de combustível e urânio.
     uranium_earth.start()
     oil_earth.start()
-
 
     # Carregando o tempo de simulação do sistema.
     time_simulation = SimulationTime()
@@ -83,7 +82,7 @@ def main():
         'ganimedes': ganimedes,
         'europa': europa
     }
-    
+
     mines = {
         'oil_earth': oil_earth,
         'uranium_earth': uranium_earth,

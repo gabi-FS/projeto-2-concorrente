@@ -91,7 +91,9 @@ class SpaceBase(Thread):
                 sleep(0.05)
 
             filling = min(oil_mine.unities, (self.constraints[1] - self.fuel))
-            oil_mine.unities -= filling  # CONDIÇÃO DE CORRIDA
+            globals.acquire_oil_unities()
+            oil_mine.unities -= filling
+            globals.release_oil_unities()
             self.fuel += filling
 
             lock_mine_acess.release()
@@ -110,7 +112,9 @@ class SpaceBase(Thread):
 
             filling = min(uranium_mine.unities,
                           (self.constraints[0] - self.uranium))
+            globals.acquire_uranium_unities()
             uranium_mine.unities -= filling
+            globals.release_uranium_unities()
             self.uranium += filling
 
             lock_mine_acess.release()

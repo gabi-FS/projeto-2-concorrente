@@ -18,6 +18,8 @@ mines = {}
 simulation_time = None
 controles_planeta = {}  # dicionário de objetos PlanetControls
 moon_controls = MoonControls()
+oil_unities_lock = Lock()
+uranium_unities_lock = Lock()
 
 
 def acquire_print():
@@ -92,3 +94,23 @@ def get_planet_controls(nome_planeta: str) -> PlanetControls:
 def get_moon_controls() -> MoonControls:
     global moon_controls
     return moon_controls
+
+
+def acquire_oil_unities():
+    global oil_unities_lock
+    oil_unities_lock.acquire()
+
+
+def release_oil_unities():
+    global oil_unities_lock
+    oil_unities_lock.release()
+
+
+def acquire_uranium_unities():
+    global uranium_unities_lock
+    uranium_unities_lock.acquire()
+
+
+def release_uranium_unities():
+    global uranium_unities_lock
+    uranium_unities_lock.release()

@@ -37,7 +37,6 @@ def release_print():
 def set_planets_ref(all_planets):
     global planets
     planets = all_planets
-    global dados_planeta  # cria um dicionário de mutexes pra pegar os dados dos planetas
     for planet in all_planets.keys():  # (já que não pode mudar o construtor)
         controles_planeta[planet] = PlanetControls()
     observer.start()

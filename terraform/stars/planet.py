@@ -46,8 +46,10 @@ class Planet(Thread):
         self.controle = globals.get_planet_controls(self.name)
 
         while(True):
+            # Espera um bombardeio ser detectado
             self.controle.acquire_nuke_sem()
             self.nuke_detected()
 
+            # Se foi terraformado com sucesso, thread do planeta é finalizada.
             if self.terraform == 0:
                 break

@@ -5,9 +5,7 @@ from space.rocket import Rocket
 from random import choice
 from time import sleep
 
-'''O sincronismo de acesso das bases a essa reserva é tal que apenas uma base consegue acesso a mina de urânio e a reserva de petróleo por vez.'''
-
-lock_mine_acess = Lock()  # global e usar em produce também? idk
+lock_mine_acess = Lock()
 
 
 class SpaceBase(Thread):
@@ -27,6 +25,9 @@ class SpaceBase(Thread):
         print(f"🔭 - [{self.name}] → 🪨  {self.uranium}/{self.constraints[0]} URANIUM  ⛽ {self.fuel}/{self.constraints[1]}  🚀 {self.rockets}/{self.constraints[2]}")
 
     def base_rocket_resources(self, rocket_name, uranium_cargo=75, fuel_cargo=120):
+        '''Testa se a base possui o que é necessário para lançar o foguete. Parâmetros opcionais uranium_cargo e fuel_cargo para foguetes de carga.
+
+        Caso sim, remove os recursos da base e retorna True. Caso não, retorna False.'''
         match rocket_name:
             case 'DRAGON':
                 if self.uranium > 35:
@@ -79,6 +80,7 @@ class SpaceBase(Thread):
                 return False
             case _:
                 print("Invalid rocket name")
+                return False
 
     def refuel_oil(self, lion_cargo=0):
         '''Se for base terrestre, adquire combustível a partir da mina de petroléo.
@@ -121,17 +123,6 @@ class SpaceBase(Thread):
         else:
             self.uranium += lion_cargo
 
-    def prepare_launch(self, rocket: Rocket, destino):
-        if destino == 'MOON':
-            r = Thread(target=lambda: rocket.launch_lion(self))
-            r.daemon = True
-            r.start()
-        else:
-            r = Thread(target=lambda: rocket.launch(
-                self, globals.get_planets_ref()[destino]), )
-            r.daemon = True
-            r.start()
-
     def run(self):
         globals.acquire_print()
         self.print_space_base_info()
@@ -153,9 +144,11 @@ class SpaceBase(Thread):
                         moon_controls.calling = False
                         moon_controls.release_bool_mutex()
                         rocket = Rocket('LION')
+                        self.rockets += 1
                         rocket.fuel_cargo = fuel_cargo
                         rocket.uranium_cargo = uranium_cargo
-                        self.prepare_launch(rocket, 'MOON')
+                        rocket.launch_lion(self)
+                        self.rockets -= 1
                     else:
                         # SEM RECURSOS PARA CHAMAR LION
                         moon_controls.release_bool_mutex()
@@ -167,9 +160,7 @@ class SpaceBase(Thread):
                 else:
                     moon_controls.release_bool_mutex()
 
-            # lançamento para atirar (p.s: ter cuidado com a diretiva)
-            # "um lançamento por vez"
-            # foguete e planeta aleatórios
+            # lançamento para atirar: foguete e planeta aleatórios
             foguete = choice(['DRAGON', 'FALCON'])
             planeta = choice(list(globals.get_planets_ref().keys()))
             control_planeta = globals.get_planet_controls(planeta)
@@ -179,9 +170,10 @@ class SpaceBase(Thread):
             if globals.get_planets_ref()[planeta].terraform > 0:
                 if (self.base_rocket_resources(foguete)):
                     rocket = Rocket(foguete)
-                    #rocket.launch(self, globals.get_planets_ref()[planeta])
-                    control_planeta.release_satelite()
-                    self.prepare_launch(rocket, planeta)
+                    self.rockets += 1
+                    rocket.launch(self, globals.get_planets_ref()[planeta])
+                    self.rockets -= 1
+                    control_planeta.release_satelite()  # DUVIDA: ANTES DO LAUNCH?
                 else:
                     # SEM RECURSOS
                     control_planeta.release_satelite()

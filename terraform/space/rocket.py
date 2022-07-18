@@ -2,6 +2,7 @@ from random import randrange, random
 from time import sleep
 import globals
 from stars.planet import Planet
+from threading import Thread
 
 
 class Rocket:
@@ -17,12 +18,12 @@ class Rocket:
             self.uranium_cargo = 0
 
     def nuke(self, planet: Planet):  # Permitida a alteração
+        ''' Escolhe aleatóriamente um polo do planeta para bombardear e avisa o planeta do bombardeio (com seu dano causado)'''
+
         if planet.terraform == 0:
-            # será melhor alternativa? para não explodir se já terraformou
             return
 
         controle = globals.get_planet_controls(planet.name)
-        # a princípio a escolha do polo é por sorteio, talvez implementar uma decisão depois
         polo = randrange(0, 2)
         controle.acquire_mutex_polo(polo)
         if polo == 0:
@@ -35,25 +36,21 @@ class Rocket:
         controle.release_nuke_sem()
         controle.release_mutex_polo(polo)
 
-    def voyage(self, planet: Planet):  # Permitida a alteração (com ressalvas)
+    def voyage_thread(self, planet: Planet):
+        ''' Foguetes simulam tempo de viagem e testam para possíveis falhas
 
-        # Essa chamada de código (do_we_have_a_problem e simulation_time_voyage) não pode ser retirada.
-        # Você pode inserir código antes ou depois dela e deve
-        # usar essa função.
-        self.simulation_time_voyage(planet)
-        failure = self.do_we_have_a_problem()
-        if (not failure):
-            self.nuke(planet)  # só chega ao planeta se não houve falha
+        Foguete explosivo: Bombardeia o planeta
 
-    def launch_lion(self, base):
-        ''' lion da terra pra lua: novo launch pois não posso alterar o antigo e nem usar @overload '''
-
-        moon_controls = globals.get_moon_controls()
-        if(self.successfull_launch(base)):
-            print(f"[{self.name} - {self.id}] launched.")
-
-            # viagem
-            sleep(0.004)  # tempo deve ser 4 dias, ve qual sleep
+        Foguete de carga: entrega cargas para a base lunar usar seu método de abastecimento
+        '''
+        if self.name != 'LION':
+            self.simulation_time_voyage(planet)
+            failure = self.do_we_have_a_problem()
+            if (not failure):
+                self.nuke(planet)  # só chega ao planeta se não houve falha
+        else:
+            moon_controls = globals.get_moon_controls()
+            sleep(0.011)  # 4 dias -> simulation time voyage
             failure = self.do_we_have_a_problem()
             if (not failure):
                 # chegou à base lunar
@@ -62,10 +59,27 @@ class Rocket:
                 moon_base.refuel_oil(self.fuel_cargo)
                 moon_controls.post_sem()
             else:
+                # não deu certo. avisar que lua continua precisando de recursos
                 moon_controls.acquire_bool_mutex()
                 moon_controls.calling = True
                 moon_controls.release_bool_mutex()
+
+    def voyage(self, planet: Planet):  # Permitida a alteração (com ressalvas)
+        # Chamadas de funções movidas para voyage_thread
+        '''Inicia thread de viagem do foguete'''
+        r = Thread(target=lambda: self.voyage_thread(planet))
+        r.daemon = True
+        r.start()
+
+    def launch_lion(self, base):
+        ''' Lança LION para a lua, caso não tenha sucesso, lua continua pedindo por recursos. '''
+
+        moon_controls = globals.get_moon_controls()
+        if(self.successfull_launch(base)):
+            print(f"[{self.name} - {self.id}] launched.")
+            self.voyage(None)
         else:
+            # não deu certo. avisar que lua continua precisando de recursos
             moon_controls.acquire_bool_mutex()
             moon_controls.calling = True
             moon_controls.release_bool_mutex()

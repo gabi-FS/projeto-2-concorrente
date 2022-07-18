@@ -94,35 +94,42 @@ def get_planet_controls(nome_planeta: str) -> PlanetControls:
 
 
 def get_moon_controls() -> MoonControls:
+    '''Adquire a classe de controle da base lunar'''
     global moon_controls
     return moon_controls
 
 
 def acquire_oil_unities():
+    '''Acquire no lock que protege unities da mina Pipeline'''
     global oil_unities_lock
     oil_unities_lock.acquire()
 
 
 def release_oil_unities():
+    '''Release no lock que protege unities da mina Pipeline'''
     global oil_unities_lock
     oil_unities_lock.release()
 
 
 def acquire_uranium_unities():
+    '''Acquire no lock que protege unities da mina StoreHouse'''
     global uranium_unities_lock
     uranium_unities_lock.acquire()
 
 
 def release_uranium_unities():
+    '''Release no lock que protege unities da mina StoreHouse'''
     global uranium_unities_lock
     uranium_unities_lock.release()
 
 
 def get_finish_system():
+    ''' Adquire variável de finalização do sistema '''
     global finish_system
     return finish_system
 
 
 def set_finish_system():
+    ''' Deixa em TRUE variável de finalização do sistema '''
     global finish_system
     finish_system = True

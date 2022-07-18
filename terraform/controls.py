@@ -53,6 +53,8 @@ class PlanetControls():
 
 
 class MoonControls(metaclass=Singleton):
+    '''Classe Singleton que possui informações sobre a neecessidade de recursos pra base lunar, tal qual mutexes e semáforos envolvidos. '''
+
     def __init__(self) -> None:
         self.__calling = False
         self.bool_mutex = Lock()
@@ -84,6 +86,8 @@ class MoonControls(metaclass=Singleton):
 
 
 class Observer(Thread):
+    '''Thread que espera join das threads de planetas para enfim avisar o resto do programa para finalizar '''
+
     def __init__(self):
         Thread.__init__(self, name='observer')
 

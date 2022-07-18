@@ -25,6 +25,9 @@ class SpaceBase(Thread):
         print(f"🔭 - [{self.name}] → 🪨  {self.uranium}/{self.constraints[0]} URANIUM  ⛽ {self.fuel}/{self.constraints[1]}  🚀 {self.rockets}/{self.constraints[2]}")
 
     def base_rocket_resources(self, rocket_name, uranium_cargo=75, fuel_cargo=120):
+        '''Testa se a base possui o que é necessário para lançar o foguete. Parâmetros opcionais uranium_cargo e fuel_cargo para foguetes de carga.
+
+        Caso sim, remove os recursos da base e retorna True. Caso não, retorna False.'''
         match rocket_name:
             case 'DRAGON':
                 if self.uranium > 35:

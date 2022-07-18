@@ -18,6 +18,8 @@ class Rocket:
             self.uranium_cargo = 0
 
     def nuke(self, planet: Planet):  # Permitida a alteração
+        ''' Escolhe aleatóriamente um polo do planeta para bombardear e avisa o planeta do bombardeio (com seu dano causado)'''
+
         if planet.terraform == 0:
             return
 
@@ -35,6 +37,12 @@ class Rocket:
         controle.release_mutex_polo(polo)
 
     def voyage_thread(self, planet: Planet):
+        ''' Foguetes simulam tempo de viagem e testam para possíveis falhas
+
+        Foguete explosivo: Bombardeia o planeta
+
+        Foguete de carga: entrega cargas para a base lunar usar seu método de abastecimento
+        '''
         if self.name != 'LION':
             self.simulation_time_voyage(planet)
             failure = self.do_we_have_a_problem()
@@ -58,6 +66,7 @@ class Rocket:
 
     def voyage(self, planet: Planet):  # Permitida a alteração (com ressalvas)
         # Chamadas de funções movidas para voyage_thread
+        '''Inicia thread de viagem do foguete'''
         r = Thread(target=lambda: self.voyage_thread(planet))
         r.daemon = True
         r.start()

@@ -18,14 +18,14 @@ class Rocket:
             self.uranium_cargo = 0
 
     def nuke(self, planet: Planet):  # Permitida a alteração
-        ''' Escolhe aleatóriamente um polo do planeta para bombardear e avisa o planeta do bombardeio (com seu dano causado)'''
+        ''' Escolhe aleatoriamente um polo do planeta para bombardear e avisa o planeta do bombardeio (com seu dano causado)'''
 
         if planet.terraform == 0:
             return
 
         controle = globals.get_planet_controls(planet.name)
         polo = randrange(0, 2)
-        controle.acquire_mutex_polo(polo)
+        controle.acquire_mutex_polo(polo) # mutex garante que apenas 1 foguete por vez atinge cada polo
         if polo == 0:
             print(
                 f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on North Pole")
@@ -33,7 +33,6 @@ class Rocket:
             print(
                 f"[EXPLOSION] - The {self.name} ROCKET reached the planet {planet.name} on South Pole")
         planet.set_damage(self.damage())
-        controle.release_nuke_sem()
         controle.release_mutex_polo(polo)
 
     def voyage_thread(self, planet: Planet):

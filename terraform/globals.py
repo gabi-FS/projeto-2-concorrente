@@ -37,7 +37,7 @@ def release_print():
 def set_planets_ref(all_planets):
     global planets
     planets = all_planets
-    for planet in all_planets.keys():  # (já que não pode mudar o construtor)
+    for planet in all_planets.keys():  # cria um dicionário de objetos de controle dos planetas
         controles_planeta[planet] = PlanetControls()
     observer.start()
 
@@ -88,8 +88,7 @@ def get_simulation_time():
 
 
 def get_planet_controls(nome_planeta: str) -> PlanetControls:
-    '''Retorna um objeto referente ao planeta informado, de uma classe cujos 
-    atributos são ferramentas de controle'''
+    '''Retorna um objeto de controle referente ao planeta informado'''
     return controles_planeta[nome_planeta.lower()]
 
 

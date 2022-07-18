@@ -14,6 +14,7 @@ class Singleton(type):
 
 
 class PlanetControls():
+    '''Classe cujos atributos são ferramentas de controle referentes a um planeta'''
     def __init__(self) -> None:
         self.satelite = Lock()
         self.nuke_mutex = Lock()
@@ -28,12 +29,15 @@ class PlanetControls():
         self.nuke_sem.acquire()
 
     def acquire_sem_damage(self):
+        '''Semáforo que permite ao foguete setar o damage no Planet'''
         self.sem_damage.acquire()
 
     def acquire_satelite(self):
+        '''Acquire satélite do planeta para obter dados'''
         self.satelite.acquire()
 
     def acquire_mutex_polo(self, n: int):
+        '''Acquire mutex que protege o polo desejado'''
         self.polos[n].acquire()
 
     def release_nuke_mutex(self):
@@ -43,12 +47,15 @@ class PlanetControls():
         self.nuke_sem.release()
 
     def release_sem_damage(self):
+        '''Libera para que outro foguete sete o damage no Planet'''
         self.sem_damage.release()
 
     def release_satelite(self):
+        '''Release satélite do planeta para obter dados'''
         self.satelite.release()
 
     def release_mutex_polo(self, n: int):
+        '''Release mutex que protege o polo desejado'''
         self.polos[n].release()
 
 

@@ -137,7 +137,7 @@ class SpaceBase(Thread):
             if self.name != 'MOON':
                 moon_controls.acquire_bool_mutex()
                 if moon_controls.calling:
-                    # leio quantidade de carga necessária no "relatório"
+                    # leio quantidade de carga necessária na classe de controle
                     fuel_cargo = moon_controls.filling_fuel
                     uranium_cargo = moon_controls.filling_uranium
                     if (self.base_rocket_resources('LION', uranium_cargo, fuel_cargo)):
@@ -165,20 +165,20 @@ class SpaceBase(Thread):
             planeta = choice(list(globals.get_planets_ref().keys()))
             control_planeta = globals.get_planet_controls(planeta)
 
-            # protege leitura de dados do planeta
+            # protege leitura de dados do planeta (garante que só 1 base pode ler por vez)
             control_planeta.acquire_satelite()
             if globals.get_planets_ref()[planeta].terraform > 0:
                 if (self.base_rocket_resources(foguete)):
+                    control_planeta.release_satelite()  
                     rocket = Rocket(foguete)
                     self.rockets += 1
                     rocket.launch(self, globals.get_planets_ref()[planeta])
                     self.rockets -= 1
-                    control_planeta.release_satelite()  # DUVIDA: ANTES DO LAUNCH?
                 else:
                     # SEM RECURSOS
                     control_planeta.release_satelite()
                     if self.name == 'MOON':
-                        # Escreve quantidade necessária no "relatório"
+                        # Escreve quantidade necessária na classe de controle
                         moon_controls.filling_fuel = min(
                             120, (self.constraints[1] - self.fuel))
                         moon_controls.filling_uranium = min(

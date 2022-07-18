@@ -14,8 +14,9 @@ class Planet(Thread):
         self.name = name
 
     def nuke_detected(self):
-        self.controle.acquire_nuke_mutex()
-        if self.terraform > 0:
+        '''Função que decrementa a variável self.terraform de acordo com o valor setado com a função self.set_damage()'''
+        self.controle.acquire_nuke_mutex() # mutex que protege o decremento da variável self.terraform
+        if self.terraform > 0: # só bombardeia se planeta ainda não está terraformado
             before_percentage = self.terraform
             if before_percentage < self.damage:
                 self.terraform = 0
@@ -24,15 +25,19 @@ class Planet(Thread):
             print(
                 f"[NUKE DETECTION] - The planet {self.name} was bombed. {self.terraform}% UNHABITABLE")
 
-        self.controle.release_sem_damage()
+        self.controle.release_sem_damage() # libera para que outro foguete possa rodar "set_damage"
         self.controle.release_nuke_mutex()
 
     def print_planet_info(self):
         print(f"🪐 - [{self.name}] → {self.terraform}% UNINHABITABLE")
 
     def set_damage(self, damage):
-        self.controle.acquire_sem_damage()
+        '''Função de que seta self.damage com o valor fornecido e "acorda" a run do planeta'''
+        self.controle.acquire_sem_damage() 
+        # semáforo que garante que apenas 1 foguete por vez altera os atributos do planeta
         self.damage = damage
+        self.controle.release_nuke_sem()
+        # libera o semáforo que faz self.run rodar
 
     def run(self):
         globals.acquire_print()

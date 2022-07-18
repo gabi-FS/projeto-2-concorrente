@@ -144,9 +144,11 @@ class SpaceBase(Thread):
                         moon_controls.calling = False
                         moon_controls.release_bool_mutex()
                         rocket = Rocket('LION')
+                        self.rockets += 1
                         rocket.fuel_cargo = fuel_cargo
                         rocket.uranium_cargo = uranium_cargo
                         rocket.launch_lion(self)
+                        self.rockets -= 1
                     else:
                         # SEM RECURSOS PARA CHAMAR LION
                         moon_controls.release_bool_mutex()
@@ -168,8 +170,10 @@ class SpaceBase(Thread):
             if globals.get_planets_ref()[planeta].terraform > 0:
                 if (self.base_rocket_resources(foguete)):
                     rocket = Rocket(foguete)
+                    self.rockets += 1
                     rocket.launch(self, globals.get_planets_ref()[planeta])
-                    control_planeta.release_satelite()
+                    self.rockets -= 1
+                    control_planeta.release_satelite()  # DUVIDA: ANTES DO LAUNCH?
                 else:
                     # SEM RECURSOS
                     control_planeta.release_satelite()

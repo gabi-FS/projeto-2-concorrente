@@ -14,7 +14,7 @@ class Planet(Thread):
         self.name = name
 
     def nuke_detected(self):
-        '''Função que decrementa a variável self.terraform de acordo com o valor setado com a função self.set_damage()'''
+        '''Função que decrementa o atributo self.terraform de acordo com o valor setado na função self.set_damage()'''
         self.controle.acquire_nuke_mutex() # mutex que protege o decremento da variável self.terraform
         if self.terraform > 0: # só bombardeia se planeta ainda não está terraformado
             before_percentage = self.terraform
